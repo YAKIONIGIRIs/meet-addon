@@ -31,6 +31,15 @@ type ApiResponse = {
   };
 };
 
+type SupplementResponse = {
+  supplement: Array<{
+    word: string;
+    description: string;
+  }>;
+  result: boolean;
+  message: string;
+};
+
 /**
  * See: https://developers.google.com/meet/add-ons/guides/overview#side-panel
  */
@@ -41,6 +50,9 @@ export default function Page() {
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [meetingCode, setMeetingCode] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
+  const [role, setRole] = useState<string>('');
+  const [supplements, setSupplements] = useState<Array<{word: string; description: string}>>([]);
 
   const bgColor = useColorModeValue('gray.50', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
@@ -68,6 +80,36 @@ export default function Page() {
     }
   };
 
+  // 補足情報を取得する関数
+  const fetchSupplements = async () => {
+    if (!meetingCode || !userName || !role) return;
+
+    try {
+      const response = await fetch('https://zenn-hackathon-2025-backend-666593730950.asia-northeast1.run.app/get_supplement', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          meetId: meetingCode,
+          userName: userName,
+          role: role,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('補足情報の取得に失敗しました');
+      }
+
+      const data: SupplementResponse = await response.json();
+      if (data.result && data.supplement.length > 0) {
+        setSupplements(prevSupplements => [...prevSupplements, ...data.supplement]);
+      }
+    } catch (err) {
+      console.error('補足情報の取得エラー:', err);
+    }
+  };
+
   // 1秒ごとに時刻を更新
   useEffect(() => {
     updateTime();
@@ -79,6 +121,14 @@ export default function Page() {
   useEffect(() => {
     fetchSummary();
   }, []);
+
+  // 10秒ごとに補足情報を取得
+  useEffect(() => {
+    if (!meetingCode || !userName || !role) return;
+
+    const timer = setInterval(fetchSupplements, 10000);
+    return () => clearInterval(timer);
+  }, [meetingCode, userName, role]);
 
   // Launches the main stage when the main button is clicked.
   async function startActivity(e: unknown) {
@@ -108,6 +158,46 @@ export default function Page() {
   return (
     <Container maxW="container.sm" py={4}>
       <VStack spacing={6} align="stretch">
+        <Box>
+          <Heading size="md" mb={2}>ユーザー情報</Heading>
+          <VStack spacing={3}>
+            <Box width="100%">
+              <Text mb={2}>ユーザー名</Text>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid',
+                  borderColor: borderColor,
+                }}
+              />
+            </Box>
+            <Box width="100%">
+              <Text mb={2}>役割</Text>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid',
+                  borderColor: borderColor,
+                }}
+              >
+                <option value="">選択してください</option>
+                <option value="engineer">エンジニア</option>
+                <option value="designer">デザイナー</option>
+                <option value="manager">プロダクトマネージャー</option>
+              </select>
+            </Box>
+          </VStack>
+        </Box>
+
         <Box>
           <Heading size="md" mb={2}>現在時刻</Heading>
           <Text fontSize="3xl" fontFamily="mono" color="blue.500">
@@ -165,6 +255,24 @@ export default function Page() {
               </List>
             </Box>
           </VStack>
+        )}
+
+        {/* 補足情報の表示 */}
+        {supplements.length > 0 && (
+          <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+            <Heading size="md" mb={3}>補足情報</Heading>
+            <List spacing={2}>
+              {supplements.map((supplement, index) => (
+                <ListItem key={index} display="flex" alignItems="start">
+                  <Text as="span" mr={2}>•</Text>
+                  <Box>
+                    <Text fontWeight="bold">{supplement.word}</Text>
+                    <Text>{supplement.description}</Text>
+                  </Box>
+                </ListItem>
+              ))}
+            </List>
+          </Box>
         )}
 
         <Divider />
