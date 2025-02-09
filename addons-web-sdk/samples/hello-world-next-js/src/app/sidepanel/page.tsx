@@ -3,7 +3,6 @@
 import {
   Alert,
   AlertIcon,
-  Badge,
   Box,
   Button,
   Container,
@@ -16,7 +15,7 @@ import {
   SkeletonText,
   Text,
   useColorModeValue,
-  VStack,
+  VStack
 } from '@chakra-ui/react';
 import {
   meet,
@@ -272,13 +271,6 @@ export default function Page() {
           <Text fontSize="3xl" fontFamily="mono" color="blue.500">
             {currentTime}
           </Text>
-        </Box>
-
-        <Box>
-          <Heading size="md" mb={2}>会議コード</Heading>
-          <Badge fontSize="md" p={2} borderRadius="md">
-            {meetingCode}
-          </Badge>
         </Box>
 
         {error && (
