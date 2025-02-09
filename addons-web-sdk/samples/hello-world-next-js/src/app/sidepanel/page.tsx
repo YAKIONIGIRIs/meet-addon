@@ -3,6 +3,7 @@
 import {
   Alert,
   AlertIcon,
+  Badge,
   Box,
   Button,
   Container,
@@ -125,7 +126,7 @@ export default function Page() {
           return newSupplements;
         });
 
-        // 10秒後に背景色のみを元に戻す
+        // 5秒後に背景色のみを元に戻す
         setTimeout(() => {
           setSupplements(prevSupplements => {
             const updatedSupplements = new Map(prevSupplements);
@@ -136,7 +137,7 @@ export default function Page() {
             });
             return updatedSupplements;
           });
-        }, 10000);
+        }, 5000);
       }
     } catch (err) {
       console.error('補足情報の取得エラー:', err);
@@ -212,8 +213,15 @@ export default function Page() {
                         p={2}
                       >
                         <Text as="span" mr={2}>•</Text>
-                        <Box>
-                          <Text fontWeight="bold">{supplement.word}</Text>
+                        <Box flex="1">
+                          <Box display="flex" alignItems="center" gap={2}>
+                            <Text fontWeight="bold">{supplement.word}</Text>
+                            {supplement.isNew && (
+                              <Badge colorScheme="blue" fontSize="xs">
+                                New
+                              </Badge>
+                            )}
+                          </Box>
                           <Text>{supplement.description}</Text>
                         </Box>
                       </ListItem>
