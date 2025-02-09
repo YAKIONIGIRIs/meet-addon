@@ -126,12 +126,14 @@ export default function Page() {
           return newSupplements;
         });
 
-        // 3秒後にisNewフラグをリセット
+        // 3秒後に背景色のみを元に戻す
         setTimeout(() => {
           setSupplements(prevSupplements => {
             const updatedSupplements = new Map(prevSupplements);
             updatedSupplements.forEach(supplement => {
-              supplement.isNew = false;
+              if (supplement.isNew) {
+                supplement.isNew = false;
+              }
             });
             return updatedSupplements;
           });
@@ -198,29 +200,26 @@ export default function Page() {
               {Array.from(supplements.values())
                 .sort((a, b) => b.timestamp - a.timestamp)
                 .map((supplement) => (
-                  <Fade 
-                    key={supplement.word} 
-                    in={supplement.isNew} 
-                    transition={{ enter: { duration: 0.5 } }}
-                    style={{
-                      transform: supplement.isNew ? 'translateY(0)' : 'none',
-                      opacity: supplement.isNew ? 1 : 0.8
-                    }}
+                  <Box
+                    key={supplement.word}
+                    transition="all 0.3s ease-in-out"
+                    bg={supplement.isNew ? 'blue.50' : 'transparent'}
+                    borderRadius="md"
                   >
-                    <ListItem 
-                      display="flex" 
-                      alignItems="start" 
-                      p={2} 
-                      bg={supplement.isNew ? 'blue.50' : 'transparent'}
-                      borderRadius="md"
-                    >
-                      <Text as="span" mr={2}>•</Text>
-                      <Box>
-                        <Text fontWeight="bold">{supplement.word}</Text>
-                        <Text>{supplement.description}</Text>
-                      </Box>
-                    </ListItem>
-                  </Fade>
+                    <Fade in={true} transition={{ enter: { duration: 0.5 } }}>
+                      <ListItem 
+                        display="flex" 
+                        alignItems="start" 
+                        p={2}
+                      >
+                        <Text as="span" mr={2}>•</Text>
+                        <Box>
+                          <Text fontWeight="bold">{supplement.word}</Text>
+                          <Text>{supplement.description}</Text>
+                        </Box>
+                      </ListItem>
+                    </Fade>
+                  </Box>
                 ))}
             </List>
           ) : (
