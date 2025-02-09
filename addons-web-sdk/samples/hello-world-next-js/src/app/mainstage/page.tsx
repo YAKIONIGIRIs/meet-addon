@@ -5,6 +5,7 @@ import {
   AlertIcon,
   Badge,
   Box,
+  Button,
   Container,
   Divider,
   Flex,
@@ -184,10 +185,23 @@ export default function Page() {
 
         {/* 補足情報の表示 */}
         <Box p={6} bg={bgColor} borderRadius="xl" borderWidth="1px" borderColor={borderColor} width="full">
-          <Heading size="lg" mb={4} display="flex" alignItems="center">
-            <Icon as={() => <span>💡</span>} mr={2} />
-            補足情報
-          </Heading>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+            <Heading size="lg" display="flex" alignItems="center">
+              <Icon as={() => <span>💡</span>} mr={2} />
+              補足情報
+            </Heading>
+            {supplements.size > 0 && (
+              <Button
+                size="md"
+                colorScheme="gray"
+                variant="ghost"
+                onClick={() => setSupplements(new Map())}
+                leftIcon={<span>🗑️</span>}
+              >
+                クリア
+              </Button>
+            )}
+          </Box>
           {supplements.size > 0 ? (
             <List spacing={3}>
               {Array.from(supplements.values())

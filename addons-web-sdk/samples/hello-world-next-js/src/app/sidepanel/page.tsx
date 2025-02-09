@@ -195,10 +195,23 @@ export default function Page() {
       <VStack spacing={6} align="stretch">
         {/* 補足情報の表示 */}
         <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Heading size="md" mb={3} display="flex" alignItems="center">
-            <Icon as={() => <span>💡</span>} mr={2} />
-            補足情報
-          </Heading>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Heading size="md" display="flex" alignItems="center">
+              <Icon as={() => <span>💡</span>} mr={2} />
+              補足情報
+            </Heading>
+            {supplements.size > 0 && (
+              <Button
+                size="sm"
+                colorScheme="gray"
+                variant="ghost"
+                onClick={() => setSupplements(new Map())}
+                leftIcon={<span>🗑️</span>}
+              >
+                クリア
+              </Button>
+            )}
+          </Box>
           {supplements.size > 0 ? (
             <List spacing={2}>
               {Array.from(supplements.values())
