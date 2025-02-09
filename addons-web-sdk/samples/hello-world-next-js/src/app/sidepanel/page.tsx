@@ -91,6 +91,7 @@ export default function Page() {
       }
       const data: ApiResponse = await response.json();
       setSummary(data.data);
+      setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
