@@ -10,6 +10,7 @@ import {
   Divider,
   Fade,
   Heading,
+  Icon,
   List,
   ListItem,
   Skeleton,
@@ -194,7 +195,10 @@ export default function Page() {
       <VStack spacing={6} align="stretch">
         {/* 補足情報の表示 */}
         <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-          <Heading size="md" mb={3}>補足情報</Heading>
+          <Heading size="md" mb={3} display="flex" alignItems="center">
+            <Icon as={() => <span>💡</span>} mr={2} />
+            補足情報
+          </Heading>
           {supplements.size > 0 ? (
             <List spacing={2}>
               {Array.from(supplements.values())
@@ -235,7 +239,10 @@ export default function Page() {
         </Box>
 
         <Box>
-          <Heading size="md" mb={2}>ユーザー情報</Heading>
+          <Heading size="md" mb={2} display="flex" alignItems="center">
+            <Icon as={() => <span>👤</span>} mr={2} />
+            ユーザー情報
+          </Heading>
           <VStack spacing={3}>
             <Box width="100%">
               <Text mb={2}>ユーザー名</Text>
@@ -275,7 +282,10 @@ export default function Page() {
         </Box>
 
         <Box>
-          <Heading size="md" mb={2}>現在時刻</Heading>
+          <Heading size="md" mb={2} display="flex" alignItems="center">
+            <Icon as={() => <span>🕒</span>} mr={2} />
+            現在時刻
+          </Heading>
           <Text fontSize="3xl" fontFamily="mono" color="blue.500">
             {currentTime}
           </Text>
@@ -301,7 +311,10 @@ export default function Page() {
         ) : summary && (
           <VStack spacing={4} align="stretch">
             <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-              <Heading size="md" mb={3}>会議の要点</Heading>
+              <Heading size="md" mb={3} display="flex" alignItems="center">
+                <Icon as={() => <span>📝</span>} mr={2} />
+                前回会議の要点
+              </Heading>
               <List spacing={2}>
                 {summary.bullet_points.map((point, index) => (
                   <ListItem key={index} display="flex" alignItems="start">
@@ -313,7 +326,10 @@ export default function Page() {
             </Box>
 
             <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-              <Heading size="md" mb={3}>アクションアイテム</Heading>
+              <Heading size="md" mb={3} display="flex" alignItems="center">
+                <Icon as={() => <span>✅</span>} mr={2} />
+                アクションアイテム
+              </Heading>
               <List spacing={2}>
                 {summary.action_items.map((item, index) => (
                   <ListItem key={index} display="flex" alignItems="start">
