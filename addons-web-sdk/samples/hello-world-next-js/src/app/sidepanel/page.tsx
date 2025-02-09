@@ -57,7 +57,7 @@ export default function Page() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [summary, setSummary] = useState<ApiResponse['data'] | null>(null);
   const [error, setError] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [meetingCode, setMeetingCode] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [role, setRole] = useState<string>('');
