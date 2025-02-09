@@ -77,7 +77,15 @@ export default function Page() {
   const fetchSummary = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://zenn-hackathon-2025-backend-666593730950.asia-northeast1.run.app/summarize_meeting');
+      const response = await fetch('https://zenn-hackathon-2025-backend-666593730950.asia-northeast1.run.app/summarize_meeting', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userName: userName || 'unknown',
+        }),
+      });
       if (!response.ok) {
         throw new Error('APIの呼び出しに失敗しました');
       }
@@ -154,8 +162,15 @@ export default function Page() {
 
   // 初回マウント時にAPIからデータを取得
   useEffect(() => {
-    fetchSummary();
+    // 初期ロード時のfetchSummaryは削除
   }, []);
+
+  // userNameが変更されたときにAPIを呼び出す
+  useEffect(() => {
+    if (userName) {
+      fetchSummary();
+    }
+  }, [userName]);
 
   // 10秒ごとに補足情報を取得
   useEffect(() => {
