@@ -8,6 +8,7 @@ import {
   Button,
   Container,
   Divider,
+  Fade,
   Heading,
   List,
   ListItem,
@@ -22,6 +23,7 @@ import {
   MeetSidePanelClient,
 } from '@googleworkspace/meet-addons/meet.addons';
 import { useEffect, useState } from 'react';
+import { PuffLoader } from 'react-spinners';
 import { CLOUD_PROJECT_NUMBER, MAIN_STAGE_URL } from '../../constants';
 
 type ApiResponse = {
@@ -53,6 +55,7 @@ export default function Page() {
   const [userName, setUserName] = useState<string>('');
   const [role, setRole] = useState<string>('');
   const [supplements, setSupplements] = useState<Array<{word: string; description: string}>>([]);
+  const [isLoadingSupplements, setIsLoadingSupplements] = useState(false);
 
   const bgColor = useColorModeValue('gray.50', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
@@ -84,6 +87,7 @@ export default function Page() {
   const fetchSupplements = async () => {
     if (!meetingCode || !userName || !role) return;
 
+    setIsLoadingSupplements(true);
     try {
       const response = await fetch('https://zenn-hackathon-2025-backend-666593730950.asia-northeast1.run.app/get_supplement', {
         method: 'POST',
@@ -107,6 +111,8 @@ export default function Page() {
       }
     } catch (err) {
       console.error('補足情報の取得エラー:', err);
+    } finally {
+      setIsLoadingSupplements(false);
     }
   };
 
@@ -158,6 +164,33 @@ export default function Page() {
   return (
     <Container maxW="container.sm" py={4}>
       <VStack spacing={6} align="stretch">
+        {/* 補足情報の表示 */}
+        <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+          <Heading size="md" mb={3}>補足情報</Heading>
+          {isLoadingSupplements ? (
+            <VStack spacing={4} align="center" py={8}>
+              <PuffLoader color="#3182CE" size={60} />
+              <Text color="gray.500">AIが補足情報を作成中です...</Text>
+            </VStack>
+          ) : supplements.length > 0 ? (
+            <List spacing={2}>
+              {supplements.map((supplement, index) => (
+                <Fade key={index} in={true} transition={{ enter: { duration: 0.5 } }}>
+                  <ListItem display="flex" alignItems="start">
+                    <Text as="span" mr={2}>•</Text>
+                    <Box>
+                      <Text fontWeight="bold">{supplement.word}</Text>
+                      <Text>{supplement.description}</Text>
+                    </Box>
+                  </ListItem>
+                </Fade>
+              ))}
+            </List>
+          ) : (
+            <Text color="gray.500" textAlign="center">補足情報はまだありません</Text>
+          )}
+        </Box>
+
         <Box>
           <Heading size="md" mb={2}>ユーザー情報</Heading>
           <VStack spacing={3}>
@@ -255,24 +288,6 @@ export default function Page() {
               </List>
             </Box>
           </VStack>
-        )}
-
-        {/* 補足情報の表示 */}
-        {supplements.length > 0 && (
-          <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-            <Heading size="md" mb={3}>補足情報</Heading>
-            <List spacing={2}>
-              {supplements.map((supplement, index) => (
-                <ListItem key={index} display="flex" alignItems="start">
-                  <Text as="span" mr={2}>•</Text>
-                  <Box>
-                    <Text fontWeight="bold">{supplement.word}</Text>
-                    <Text>{supplement.description}</Text>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
         )}
 
         <Divider />
