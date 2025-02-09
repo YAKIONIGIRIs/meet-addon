@@ -161,16 +161,9 @@ export default function Page() {
     return () => clearInterval(timer);
   }, []);
 
-  // 初回マウント時にAPIからデータを取得
-  useEffect(() => {
-    // 初期ロード時のfetchSummaryは削除
-  }, []);
-
   // userNameが変更されたときにAPIを呼び出す
   useEffect(() => {
-    if (userName && userName !== '') {  // 空文字列でない場合のみ実行
-      fetchSummary();
-    }
+    // 自動フェッチを削除
   }, [userName]);
 
   // 10秒ごとに補足情報を取得
@@ -307,6 +300,15 @@ export default function Page() {
                 <option value="manager">プロダクトマネージャー</option>
               </select>
             </Box>
+            <Button
+              colorScheme="blue"
+              width="100%"
+              onClick={fetchSummary}
+              isDisabled={!userName || userName.trim() === ''}
+              leftIcon={<span>📝</span>}
+            >
+              前回の会議サマリーを取得
+            </Button>
           </VStack>
         </Box>
 
