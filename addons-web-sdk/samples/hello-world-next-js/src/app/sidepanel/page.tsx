@@ -168,7 +168,7 @@ export default function Page() {
 
   // userNameが変更されたときにAPIを呼び出す
   useEffect(() => {
-    if (userName) {
+    if (userName && userName !== '') {  // 空文字列でない場合のみ実行
       fetchSummary();
     }
   }, [userName]);
