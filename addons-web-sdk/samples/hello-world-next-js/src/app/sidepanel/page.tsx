@@ -125,7 +125,7 @@ export default function Page() {
           return newSupplements;
         });
 
-        // 3秒後に背景色のみを元に戻す
+        // 10秒後に背景色のみを元に戻す
         setTimeout(() => {
           setSupplements(prevSupplements => {
             const updatedSupplements = new Map(prevSupplements);
@@ -136,7 +136,7 @@ export default function Page() {
             });
             return updatedSupplements;
           });
-        }, 3000);
+        }, 10000);
       }
     } catch (err) {
       console.error('補足情報の取得エラー:', err);
