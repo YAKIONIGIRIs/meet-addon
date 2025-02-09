@@ -23,7 +23,6 @@ import {
   MeetSidePanelClient,
 } from '@googleworkspace/meet-addons/meet.addons';
 import { useEffect, useState } from 'react';
-import { PuffLoader } from 'react-spinners';
 import { CLOUD_PROJECT_NUMBER, MAIN_STAGE_URL } from '../../constants';
 
 type ApiResponse = {
@@ -31,6 +30,13 @@ type ApiResponse = {
     bullet_points: string[];
     action_items: string[];
   };
+};
+
+type Supplement = {
+  word: string;
+  description: string;
+  timestamp: number;
+  isNew: boolean;
 };
 
 type SupplementResponse = {
@@ -54,7 +60,7 @@ export default function Page() {
   const [meetingCode, setMeetingCode] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [role, setRole] = useState<string>('');
-  const [supplements, setSupplements] = useState<Array<{word: string; description: string}>>([]);
+  const [supplements, setSupplements] = useState<Map<string, Supplement>>(new Map());
   const [isLoadingSupplements, setIsLoadingSupplements] = useState(false);
 
   const bgColor = useColorModeValue('gray.50', 'gray.700');
@@ -87,7 +93,6 @@ export default function Page() {
   const fetchSupplements = async () => {
     if (!meetingCode || !userName || !role) return;
 
-    setIsLoadingSupplements(true);
     try {
       const response = await fetch('https://zenn-hackathon-2025-backend-666593730950.asia-northeast1.run.app/get_supplement', {
         method: 'POST',
@@ -107,12 +112,33 @@ export default function Page() {
 
       const data: SupplementResponse = await response.json();
       if (data.result && data.supplement.length > 0) {
-        setSupplements(prevSupplements => [...prevSupplements, ...data.supplement]);
+        setSupplements(prevSupplements => {
+          const newSupplements = new Map(prevSupplements);
+          data.supplement.forEach(item => {
+            if (!prevSupplements.has(item.word)) {
+              newSupplements.set(item.word, {
+                ...item,
+                timestamp: Date.now(),
+                isNew: true
+              });
+            }
+          });
+          return newSupplements;
+        });
+
+        // 3秒後にisNewフラグをリセット
+        setTimeout(() => {
+          setSupplements(prevSupplements => {
+            const updatedSupplements = new Map(prevSupplements);
+            updatedSupplements.forEach(supplement => {
+              supplement.isNew = false;
+            });
+            return updatedSupplements;
+          });
+        }, 3000);
       }
     } catch (err) {
       console.error('補足情報の取得エラー:', err);
-    } finally {
-      setIsLoadingSupplements(false);
     }
   };
 
@@ -167,24 +193,35 @@ export default function Page() {
         {/* 補足情報の表示 */}
         <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
           <Heading size="md" mb={3}>補足情報</Heading>
-          {isLoadingSupplements ? (
-            <VStack spacing={4} align="center" py={8}>
-              <PuffLoader color="#3182CE" size={60} />
-              <Text color="gray.500">AIが補足情報を作成中です...</Text>
-            </VStack>
-          ) : supplements.length > 0 ? (
+          {supplements.size > 0 ? (
             <List spacing={2}>
-              {supplements.map((supplement, index) => (
-                <Fade key={index} in={true} transition={{ enter: { duration: 0.5 } }}>
-                  <ListItem display="flex" alignItems="start">
-                    <Text as="span" mr={2}>•</Text>
-                    <Box>
-                      <Text fontWeight="bold">{supplement.word}</Text>
-                      <Text>{supplement.description}</Text>
-                    </Box>
-                  </ListItem>
-                </Fade>
-              ))}
+              {Array.from(supplements.values())
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .map((supplement) => (
+                  <Fade 
+                    key={supplement.word} 
+                    in={supplement.isNew} 
+                    transition={{ enter: { duration: 0.5 } }}
+                    style={{
+                      transform: supplement.isNew ? 'translateY(0)' : 'none',
+                      opacity: supplement.isNew ? 1 : 0.8
+                    }}
+                  >
+                    <ListItem 
+                      display="flex" 
+                      alignItems="start" 
+                      p={2} 
+                      bg={supplement.isNew ? 'blue.50' : 'transparent'}
+                      borderRadius="md"
+                    >
+                      <Text as="span" mr={2}>•</Text>
+                      <Box>
+                        <Text fontWeight="bold">{supplement.word}</Text>
+                        <Text>{supplement.description}</Text>
+                      </Box>
+                    </ListItem>
+                  </Fade>
+                ))}
             </List>
           ) : (
             <Text color="gray.500" textAlign="center">補足情報はまだありません</Text>
