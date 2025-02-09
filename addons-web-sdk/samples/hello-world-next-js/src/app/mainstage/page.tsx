@@ -3,6 +3,7 @@
 import {
   Alert,
   AlertIcon,
+  Badge,
   Box,
   Container,
   Divider,
@@ -31,6 +32,22 @@ type ApiResponse = {
   };
 };
 
+type Supplement = {
+  word: string;
+  description: string;
+  timestamp: number;
+  isNew: boolean;
+};
+
+type SupplementResponse = {
+  supplement: Array<{
+    word: string;
+    description: string;
+  }>;
+  result: boolean;
+  message: string;
+};
+
 /**
  * See: https://developers.google.com/meet/add-ons/guides/overview#main-stage
  */
@@ -40,6 +57,8 @@ export default function Page() {
   const [summary, setSummary] = useState<ApiResponse['data'] | null>(null);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [supplements, setSupplements] = useState<Map<string, Supplement>>(new Map());
+  const [isLoadingSupplements, setIsLoadingSupplements] = useState(false);
 
   // 現在時刻を更新する関数
   const updateTime = () => {
@@ -64,6 +83,59 @@ export default function Page() {
     }
   };
 
+  // 補足情報を取得する関数
+  const fetchSupplements = async () => {
+    try {
+      const response = await fetch('https://zenn-hackathon-2025-backend-666593730950.asia-northeast1.run.app/get_supplement', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          meetId: 'shared-view', // メインステージは共有ビューなので固定値
+          userName: 'shared-view',
+          role: 'all',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('補足情報の取得に失敗しました');
+      }
+
+      const data: SupplementResponse = await response.json();
+      if (data.result && data.supplement.length > 0) {
+        setSupplements(prevSupplements => {
+          const newSupplements = new Map(prevSupplements);
+          data.supplement.forEach(item => {
+            if (!prevSupplements.has(item.word)) {
+              newSupplements.set(item.word, {
+                ...item,
+                timestamp: Date.now(),
+                isNew: true
+              });
+            }
+          });
+          return newSupplements;
+        });
+
+        // 5秒後に背景色のみを元に戻す
+        setTimeout(() => {
+          setSupplements(prevSupplements => {
+            const updatedSupplements = new Map(prevSupplements);
+            updatedSupplements.forEach(supplement => {
+              if (supplement.isNew) {
+                supplement.isNew = false;
+              }
+            });
+            return updatedSupplements;
+          });
+        }, 5000);
+      }
+    } catch (err) {
+      console.error('補足情報の取得エラー:', err);
+    }
+  };
+
   // 1秒ごとに時刻を更新
   useEffect(() => {
     updateTime();
@@ -74,6 +146,12 @@ export default function Page() {
   // 初回マウント時にAPIからデータを取得
   useEffect(() => {
     fetchSummary();
+  }, []);
+
+  // 10秒ごとに補足情報を取得
+  useEffect(() => {
+    const timer = setInterval(fetchSupplements, 10000);
+    return () => clearInterval(timer);
   }, []);
 
   /**
@@ -104,6 +182,46 @@ export default function Page() {
           </Text>
         </Box>
 
+        {/* 補足情報の表示 */}
+        <Box p={6} bg={bgColor} borderRadius="xl" borderWidth="1px" borderColor={borderColor} width="full">
+          <Heading size="lg" mb={4} display="flex" alignItems="center">
+            <Icon as={() => <span>💡</span>} mr={2} />
+            補足情報
+          </Heading>
+          {supplements.size > 0 ? (
+            <List spacing={3}>
+              {Array.from(supplements.values())
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .map((supplement) => (
+                  <ListItem
+                    key={supplement.word}
+                    display="flex"
+                    alignItems="start"
+                    p={3}
+                    transition="all 0.3s ease-in-out"
+                    bg={supplement.isNew ? 'blue.50' : 'transparent'}
+                    borderRadius="md"
+                  >
+                    <Text as="span" mr={3} color="blue.500">•</Text>
+                    <Box flex="1">
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <Text fontWeight="bold">{supplement.word}</Text>
+                        {supplement.isNew && (
+                          <Badge colorScheme="blue" fontSize="xs">
+                            New
+                          </Badge>
+                        )}
+                      </Box>
+                      <Text>{supplement.description}</Text>
+                    </Box>
+                  </ListItem>
+                ))}
+            </List>
+          ) : (
+            <Text color="gray.500" textAlign="center">補足情報はまだありません</Text>
+          )}
+        </Box>
+
         {error && (
           <Alert status="error" borderRadius="lg" width="full">
             <AlertIcon />
@@ -126,7 +244,7 @@ export default function Page() {
             <Box p={6} bg={bgColor} borderRadius="xl" borderWidth="1px" borderColor={borderColor}>
               <Heading size="lg" mb={4} display="flex" alignItems="center">
                 <Icon as={() => <span>💡</span>} mr={2} />
-                会議の要点
+                前回会議の要点
               </Heading>
               <List spacing={3}>
                 {summary.bullet_points.map((point, index) => (
